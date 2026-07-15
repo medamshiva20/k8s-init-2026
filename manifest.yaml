@@ -33,13 +33,13 @@ spec:
              --query SecretString --output text | jq -r .MYSQL_ROOT_PASSWORD
             echo "secret placed successfully"
             cat /secrets/mysql-secret-reader.txt # just for verification, should not do actually
-      volumemounts:
+      volumeMounts:
        - name: mysql-secret
          mountPath: /secrets  
    containers:
     - name: mysql
       image: sivamedam/mysql:1.5.0
-      volumes:
+      volumesMounts:
        - name: mysql-secret
          mountPath: /secrets
    volumes:

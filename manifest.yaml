@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: mysql
+ namespace: roboshop
+ labels:
+  project: roboshop
+  tier: db
+  component: mysql
+spec:
+ replicas: 1
+ selector:
+  matchLabels:
+   project: roboshop
+   tier: db
+   component: mysql
+ template:
+  metadata:
+   labels:
+    project: roboshop
+    tier: db
+    component: mysql
+  spec:
+   serviceAccount: mysql-secret-reader
+   initContainers:
+    - name: secret-reader
+      image: amazon/aws-cli
+      command:
+       - sh
+       - -c
+       - |
+            aws secretsmanager get-secret-value --secret-id roboshop/dev/mysql_root_password1 /
+             --query SecretString --output text | jq -r .MYSQL_ROOT_PASSWORD
+            echo "secret placed successfully"
+            cat /secrets/mysql-secret-reader.txt # just for verification, should not do actually
+      volumemounts:
+       - name: mysql-secret
+         mountPath: /secrets  
+   containers:
+    - name: mysql
+      image: sivamedam/mysql:1.5.0
+      volumes:
+       - name: mysql-secret
+         mountPath: /secrets
+   volumes:
+    - name: mysql-secret
+      emptyDir: {}
